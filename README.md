@@ -1,13 +1,18 @@
 # tensorflow-image-classifier
 
-With this tool you will be able to easily train an image classifier and then use it to classify other images.
+This is a tensorflow image classifier using transfer learning.
+It uses an Inception v3 model that has been trained on the Google ImageNet challenge dataset.
+The final layer is removed from from the model, and retained using new image inputs, and new output layer for classification.
+The training is very fast, as each image can be pre-computed up to the final layer to form a tensor of length 2048.
+The training then occurs with these "bottlenecks" as the inputs.
 
-We use a technique called transfer learning where we take a model called Inception v3 that has already been trained by Google on the ImageNet challenge dataset. This model is flexible enough that we only need to replace the final layer of the graph with our own training. This is much faster than doing the deep learning from scratch.
+## Note
 
-This project mainly follows the [TensorFlow for Poets tutorial](https://codelabs.developers.google.com/codelabs/tensorflow-for-poets/index.html).
-
-The quality of your classifier will depend mostly on how good your labelled dataset is. I will be posting some tools to aid in creating a good dataset soon.
-
+Credit to [damianmoore](https://hub.docker.com/r/damianmoore/tensorflow-image-classifier/) (as well as [TensorFlow for Poets tutorial](https://codelabs.developers.google.com/codelabs/tensorflow-for-poets/index.html)).
+I modified the work to save all image bottleneck files in a single folder.
+I find this more useful, since I rename the input jpgs as <sha256_hash>.jpg.
+This way, the same bottleneck files can be used for multiple classification batches without needing to duplicate them.
+Since computing the bottleneck files is one of the main computational tasks, it is a major time savings to not have to recompute them.
 
 ## Requirements
 
@@ -16,58 +21,21 @@ The quality of your classifier will depend mostly on how good your labelled data
 * Sample images in labelled directories (though you can use an example dataset shown below)
 
 
-## Getting started with an example dataset
-
-The best way to get started is to try it out with an example dataset. Here we download a labelled dataset of flowers, move the photos into position, train the model against the dataset then use it to classify an image.
-```
-curl -O http://download.tensorflow.org/example_images/flower_photos.tgz
-mkdir -p tf_files/flowers/data
-tar xzf flower_photos.tgz
-mv flower_photos/* tf_files/flowers/data/
-rm -r flower_photos
-rm tf_files/flowers/data/*/[3-9]*  # Optional if you just want to try it quickly on a smaller dataset
-
-./train.sh tf_files flowers -s 500  # This is the bit that will take a while to run (~20 mins on my laptop using the reduced dataset)
-./classify.sh tf_files flowers tf_files/flowers/data/daisy/11124324295_503f3a0804.jpg
-```
-
-It should output something similar to the following probabilities:
-```
-daisy (score = 0.93466)
-sunflowers (score = 0.04375)
-dandelion (score = 0.01565)
-tulips (score = 0.00516)
-roses (score = 0.00078)
-```
-
-
-## Directory setup
-
-You need a directory that will hold the tensorflow data, your images and the output graphs - this is usually called `tf_files`. Make a classifier directory in it which is the name of the classifier you are building. Inside that should be a directory `data` where you should put directories for each of the classification labels and then images within those.
-
-For example:
-```
-tf_files/
-tf_files/flowers/
-tf_files/flowers/data
-tf_files/flowers/data/daisy
-tf_files/flowers/data/dandelion
-tf_files/flowers/data/sunflowers
-```
-
 ## Training
 
-Train against the image samples for your classifier with 500 steps:
-```
-./train.sh path_to_tf_files classifier_name -s 500
-```
-Creating bottlenecks is the most time-consuming part and has to be done for each of the images. These bottlenecks are cached to disk though in `tf_files/bottlenecks` so only has to be done if new images are added. After the bottlenecks have been created, the main training and validation steps happen. The default (if no `-s` parameter is provided) is 4000 steps. The more steps you use for training, the more accurate the classificaiton should be, though you will hit a point of diminishing returns.
+First populate `tf_files/<dataset>/<data>/<labels>` with image files, where the labelled data are in different named folders (<labels>).
+To train, run the following, where the -s argument is the number of steps to train.
 
-
-## Classifying
-
-Classify an image against the trained graph:
 ```
-./classify.sh path_to_tf_files classifier_name yourfile.jpg
+./train.sh tf_files <dataset> -s 1000
 ```
-The results are ordered with the strongest matches at the top along with the probability scores. A score of 0.93, for example, means the classifier is 93% sure of the label being correct.
+
+## Classification
+
+To classify, run the following.
+
+```
+./classify.sh tf_files <dataset> <filepath>
+```
+
+It will output a score associated with each of the labels, with the strongest match first.
