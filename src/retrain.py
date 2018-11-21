@@ -233,8 +233,20 @@ def get_bottleneck_path(image_lists, label_name, index, bottleneck_dir,
   Returns:
     File system path string to an image that meets the requested parameters.
   """
-  return get_image_path(image_lists, label_name, index, bottleneck_dir,
-                        category) + '.txt'
+
+  if label_name not in image_lists:
+    tf.logging.fatal('Label does not exist %s.', label_name)
+  label_lists = image_lists[label_name]
+  if category not in label_lists:
+    tf.logging.fatal('Category does not exist %s.', category)
+  category_list = label_lists[category]
+  if not category_list:
+    tf.logging.fatal('Label %s has no images in the category %s.',
+                     label_name, category)
+  mod_index = index % len(category_list)
+  base_name = category_list[mod_index]
+  full_path = os.path.join(bottleneck_dir, base_name) + '.txt'
+  return full_path
 
 
 def create_inception_graph():
@@ -383,10 +395,6 @@ def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,
   Returns:
     Numpy array of values produced by the bottleneck layer for the image.
   """
-  label_lists = image_lists[label_name]
-  sub_dir = label_lists['dir']
-  sub_dir_path = os.path.join(bottleneck_dir, sub_dir)
-  ensure_dir_exists(sub_dir_path)
   bottleneck_path = get_bottleneck_path(image_lists, label_name, index, bottleneck_dir, category)
   if not os.path.exists(bottleneck_path):
     create_bottleneck_file(bottleneck_path, image_lists, label_name, index, image_dir, category, sess, jpeg_data_tensor, bottleneck_tensor)

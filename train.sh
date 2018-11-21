@@ -17,11 +17,11 @@ done
 
 echo Training "${DATASET}" dataset with "${STEPS:-4000}" steps
 
-docker run -v $VOLUME:/tf_files damianmoore/tensorflow-image-classifier python /retrain.py \
-    --bottleneck_dir=/tf_files/bottlenecks \
+docker run -v $VOLUME:/tf_files gmyrland/tensorflow-image-classifier python /retrain.py \
+    --bottleneck_dir=/tf_files/.bottlenecks/ \
     --how_many_training_steps=${STEPS:-4000} \
-    --model_dir=/tf_files/inception \
-    --summaries_dir=/tf_files/training_summaries/basic \
+    --model_dir=/tf_files/.inception \
+    --summaries_dir=/tf_files/.training_summaries/$DATASET/basic \
     --output_graph=/tf_files/$DATASET/retrained_graph.pb \
     --output_labels=/tf_files/$DATASET/retrained_labels.txt \
     --image_dir=/tf_files/$DATASET/data

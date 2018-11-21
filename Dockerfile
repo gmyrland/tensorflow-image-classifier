@@ -1,6 +1,6 @@
 FROM tensorflow/tensorflow:1.1.0
 
-MAINTAINER Damian Moore "damian@epixstudios.co.uk"
+MAINTAINER Glen Myrland "glenmyrland@gmail.com"
 
 WORKDIR /
 
