@@ -1,1 +1,1 @@
-docker build -t damianmoore/tensorflow-image-classifier .
+docker build -t gmyrland/tensorflow-image-classifier .
